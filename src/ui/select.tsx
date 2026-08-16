@@ -13,7 +13,7 @@ type SelectProps = {
   required?: boolean;
 };
 
-export function Select({ value, onChange, options, placeholder, className, required }: SelectProps) {
+export function Select({ value, onChange, options, placeholder, className }: SelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);

@@ -36,3 +36,22 @@ export type CorePermissionRead = {
   description: string | null;
   created_at: string;
 };
+
+export type CoreUserCategoryRead = {
+  value: string;
+  label: string;
+};
+
+export type CoreUserRead = {
+  id: string;
+  tenant_id: string;
+  branch_id: string | null;
+  name: string;
+  email: string;
+  active: boolean;
+  category: string | null;
+  roles: string[];
+  warehouse_ids: string[];
+  created_at: string;
+  updated_at: string;
+};
