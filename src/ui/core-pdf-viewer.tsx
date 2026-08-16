@@ -1,10 +1,10 @@
 import { Viewer, Worker } from "@react-pdf-viewer/core";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
 
 import "@react-pdf-viewer/core/lib/styles/index.css";
 
 type CorePdfViewerProps = {
   fileUrl: string | null;
+  workerUrl: string;
   emptyMessage?: string;
   loadingMessage?: string;
   heightClassName?: string;
@@ -12,6 +12,7 @@ type CorePdfViewerProps = {
 
 export function CorePdfViewer({
   fileUrl,
+  workerUrl,
   emptyMessage = "Sin PDF disponible.",
   loadingMessage = "Cargando PDF...",
   heightClassName = "h-[500px]",
