@@ -27,6 +27,10 @@ resolve: { alias: { "@systutor/shell": path.resolve(__dirname, "vendor/systutor-
 
 // tsconfig.json
 "paths": { "@systutor/shell/*": ["./vendor/systutor-shell/src/*"] }
+
+// tailwind.config.ts — obligatorio: sin esto, Tailwind purga las clases
+// que solo viven en el shell (dialog, data-table, bordes) y la UI se rompe.
+content: ["./src/**/*.{ts,tsx}", "./vendor/systutor-shell/src/**/*.{ts,tsx}"],
 ```
 
 ```ts
