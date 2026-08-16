@@ -19,3 +19,20 @@ export type LoginResponse = {
   expires_in: number;
   user: UserProfile;
 };
+
+export type CoreRoleRead = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  permissions: string[];
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CorePermissionRead = {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+};
