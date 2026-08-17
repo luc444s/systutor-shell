@@ -71,7 +71,11 @@ export function getApiBaseUrl() {
 }
 
 function buildUrl(path: string) {
-  return `${getApiBaseUrl()}${path}`;
+  const baseUrl = getApiBaseUrl();
+  if (baseUrl.endsWith("/api") && path.startsWith("/api/")) {
+    return `${baseUrl}${path.slice(4)}`;
+  }
+  return `${baseUrl}${path}`;
 }
 
 export type TokenProvider = () => string | null;
