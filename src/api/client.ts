@@ -1,5 +1,6 @@
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
+export const AUTH_UNAUTHORIZED_EVENT = "systutor:auth-unauthorized";
 
 export type PluginManifest = {
   id: string;
@@ -113,6 +114,9 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   }
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(AUTH_UNAUTHORIZED_EVENT));
+    }
     const detail = payload?.detail;
     let message: string;
     if (Array.isArray(detail)) {
