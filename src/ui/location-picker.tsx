@@ -34,6 +34,8 @@ type LocationPickerProps = {
   placeholder?: string;
   searchPlaceholder?: string;
   height?: number;
+  /** Centro del mapa cuando no hay value (evita hardcodear región en el Core). */
+  defaultCenter?: LatLng;
 };
 
 const DEFAULT_ZOOM = 13;
@@ -191,6 +193,7 @@ export function LocationPicker({
   placeholder,
   searchPlaceholder,
   height = 300,
+  defaultCenter,
 }: LocationPickerProps) {
   const mapRef = useRef<LeafletMap | null>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -199,7 +202,7 @@ export function LocationPicker({
     setMapReady(true);
   }, []);
 
-  const defaultCenter: LatLng = value ?? { lat: 40.4168, lng: -3.7038 };
+  const initialCenter: LatLng = value ?? defaultCenter ?? { lat: 40.4168, lng: -3.7038 };
   const [address, setAddress] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
 
