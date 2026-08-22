@@ -258,7 +258,7 @@ export function LocationPicker({
       >
         <style>{leafletZoomStyles}</style>
         <MapContainer
-          center={[defaultCenter.lat, defaultCenter.lng]}
+          center={[initialCenter.lat, initialCenter.lng]}
           zoom={value ? DEFAULT_ZOOM : 6}
           className="h-full w-full"
           ref={mapRef}
