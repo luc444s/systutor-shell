@@ -14,10 +14,11 @@ type DataTableProps<Row> = {
   rowKey: (row: Row) => string;
   emptyMessage: string;
   onRowClick?: (row: Row) => void;
+  onRowDoubleClick?: (row: Row) => void;
   dense?: boolean;
 };
 
-export function DataTable<Row>({ columns, rows, rowKey, emptyMessage, onRowClick, dense = false }: DataTableProps<Row>) {
+export function DataTable<Row>({ columns, rows, rowKey, emptyMessage, onRowClick, onRowDoubleClick, dense = false }: DataTableProps<Row>) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       <div className="overflow-x-auto">
@@ -36,8 +37,9 @@ export function DataTable<Row>({ columns, rows, rowKey, emptyMessage, onRowClick
               rows.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  className={cn("align-top", onRowClick && "cursor-pointer hover:bg-accent/50")}
+                  className={cn("align-top", (onRowClick || onRowDoubleClick) && "cursor-pointer hover:bg-accent/50")}
                   onClick={() => onRowClick?.(row)}
+                  onDoubleClick={() => onRowDoubleClick?.(row)}
                 >
                   {columns.map((column) => (
                     <td key={column.key} className={cn(dense ? "px-3 py-1.5" : "px-4 py-3", column.className)}>
