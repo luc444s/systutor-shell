@@ -16,6 +16,7 @@ export type SearchDialogProps<T> = {
   onSelect: (item: T) => void;
   getRowId?: (item: T) => string;
   emptyMessage?: string;
+  maxWidthClassName?: string;
 };
 
 const DEBOUNCE_MS = 300;
@@ -30,6 +31,7 @@ export function SearchDialog<T>({
   onSelect,
   getRowId,
   emptyMessage = "Sin resultados.",
+  maxWidthClassName = "max-w-4xl",
 }: SearchDialogProps<T>) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -66,7 +68,7 @@ export function SearchDialog<T>({
       title={title}
       description={placeholder ? `Busca por ${placeholder.toLowerCase()}.` : undefined}
       onClose={() => onOpenChange(false)}
-      maxWidthClassName="max-w-4xl"
+      maxWidthClassName={maxWidthClassName}
     >
       <div className="space-y-4">
         <Input
