@@ -63,9 +63,22 @@ const lightTile = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 function ChangeView({ center, zoom }: { center: LatLng; zoom: number }) {
   const map = useMap();
+  // Clave primitiva: el effect solo corre cuando la vista objetivo cambia de
+  // verdad, no en cada render del padre. Así el usuario puede hacer zoom/pan
+  // manual sin que el mapa lo revierta a la vista programática.
+  const viewKey = `${center.lat},${center.lng},${zoom}`;
   useEffect(() => {
+    const current = map.getCenter();
+    const alreadyThere =
+      Math.abs(current.lat - center.lat) < 1e-7 &&
+      Math.abs(current.lng - center.lng) < 1e-7 &&
+      map.getZoom() === zoom;
+    if (alreadyThere) {
+      return;
+    }
     map.setView([center.lat, center.lng], zoom);
-  }, [center, map, zoom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewKey]);
   return null;
 }
 
