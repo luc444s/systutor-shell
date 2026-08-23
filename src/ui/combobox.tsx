@@ -24,6 +24,7 @@ type ComboboxProps = {
   onSubmitQuery?: (value: string) => void;
   variant?: "button" | "input";
   minSearchLength?: number;
+  maxResults?: number;
   selectedLabel?: string;
   footer?: ReactNode;
 };
@@ -61,6 +62,7 @@ export function Combobox({
   onSubmitQuery,
   variant = "button",
   minSearchLength = 0,
+  maxResults = 50,
   selectedLabel,
   footer,
 }: ComboboxProps) {
@@ -90,6 +92,11 @@ export function Combobox({
     });
   }, [normalizedQuery, options]);
 
+  const visibleOptions = useMemo(
+    () => filteredOptions.slice(0, maxResults),
+    [filteredOptions, maxResults],
+  );
+
   function updateQuery(nextValue: string) {
     if (onSearchValueChange) {
       onSearchValueChange(nextValue);
@@ -115,17 +122,17 @@ export function Combobox({
       }
       return;
     }
-    const selectedIndex = filteredOptions.findIndex((option) => option.value === value);
+    const selectedIndex = visibleOptions.findIndex((option) => option.value === value);
     setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
     const timer = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => window.clearTimeout(timer);
-  }, [open, filteredOptions, value]);
+  }, [open, visibleOptions, value]);
 
   useEffect(() => {
-    if (highlightedIndex >= filteredOptions.length) {
-      setHighlightedIndex(filteredOptions.length > 0 ? filteredOptions.length - 1 : 0);
+    if (highlightedIndex >= visibleOptions.length) {
+      setHighlightedIndex(visibleOptions.length > 0 ? visibleOptions.length - 1 : 0);
     }
-  }, [filteredOptions.length, highlightedIndex]);
+  }, [visibleOptions.length, highlightedIndex]);
 
   useEffect(() => {
     if (variant === "input") {
@@ -141,7 +148,7 @@ export function Combobox({
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement | HTMLInputElement>) {
     if (variant === "input" && event.key === "Enter") {
-      if (open && filteredOptions[highlightedIndex]) {
+      if (open && visibleOptions[highlightedIndex]) {
         event.preventDefault();
         selectOption(filteredOptions[highlightedIndex]);
         return;
@@ -189,7 +196,7 @@ export function Combobox({
       return;
     }
 
-    if (event.key === "Enter" && filteredOptions[highlightedIndex]) {
+    if (event.key === "Enter" && visibleOptions[highlightedIndex]) {
       event.preventDefault();
       selectOption(filteredOptions[highlightedIndex]);
     }
@@ -265,8 +272,8 @@ export function Combobox({
       {open ? (
         <div className="absolute left-0 right-0 top-full z-[9999] mt-1 rounded-md border border-border bg-popover shadow-lg">
           <div className="max-h-60 overflow-auto py-1" role="listbox">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option, index) => {
+            {visibleOptions.length > 0 ? (
+              visibleOptions.map((option, index) => {
                 const isSelected = option.value === value;
                 const isHighlighted = index === highlightedIndex;
 
@@ -297,6 +304,11 @@ export function Combobox({
           {footer && (
             <div className="border-t border-border px-1 py-1">{footer}</div>
           )}
+          {filteredOptions.length > maxResults ? (
+            <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+              Mostrando {visibleOptions.length} de {filteredOptions.length}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
