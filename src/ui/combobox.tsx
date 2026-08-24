@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 
 import { cn } from "./cn";
@@ -70,7 +71,42 @@ export function Combobox({
   const [internalQuery, setInternalQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [panelPos, setPanelPos] = useState<{
+    left: number;
+    width: number;
+    top?: number;
+    bottom?: number;
+  } | null>(null);
+
+  function updatePanelPosition() {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < 260 && rect.top > 260;
+    setPanelPos({
+      left: rect.left,
+      width: rect.width,
+      ...(openUp
+        ? { bottom: window.innerHeight - rect.top + 4 }
+        : { top: rect.bottom + 4 }),
+    });
+  }
+
+  useEffect(() => {
+    if (!open) {
+      setPanelPos(null);
+      return;
+    }
+    updatePanelPosition();
+    window.addEventListener("resize", updatePanelPosition);
+    window.addEventListener("scroll", updatePanelPosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePanelPosition);
+      window.removeEventListener("scroll", updatePanelPosition, true);
+    };
+  }, [open]);
 
   const query = searchValue ?? internalQuery;
   const normalizedQuery = normalize(query);
@@ -107,9 +143,10 @@ export function Combobox({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (ref.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -268,10 +305,23 @@ export function Combobox({
         </div>
       )}
 
-      {/* Dropdown list */}
-      {open ? (
-        <div className="absolute left-0 right-0 top-full z-[9999] mt-1 rounded-md border border-border bg-popover shadow-lg">
-          <div className="max-h-60 overflow-auto py-1" role="listbox">
+      {/* Dropdown list — portal a document.body para escapar de contenedores
+          con overflow-hidden (dialogs) y pintar por encima de todo (§zindex). */}
+      {open && panelPos
+        ? createPortal(
+            <div
+              ref={panelRef}
+              style={{
+                position: "fixed",
+                zIndex: 1100,
+                left: panelPos.left,
+                width: panelPos.width,
+                ...(panelPos.top !== undefined ? { top: panelPos.top } : {}),
+                ...(panelPos.bottom !== undefined ? { bottom: panelPos.bottom } : {}),
+              }}
+              className="rounded-md border border-border bg-popover shadow-lg"
+            >
+              <div className="max-h-60 overflow-auto py-1" role="listbox">
             {visibleOptions.length > 0 ? (
               visibleOptions.map((option, index) => {
                 const isSelected = option.value === value;
@@ -309,7 +359,8 @@ export function Combobox({
               Mostrando {visibleOptions.length} de {filteredOptions.length}
             </div>
           ) : null}
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );
