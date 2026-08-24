@@ -202,7 +202,7 @@ export function LocationPicker({
     setMapReady(true);
   }, []);
 
-  const initialCenter: LatLng = value ?? defaultCenter ?? { lat: 40.4168, lng: -3.7038 };
+  const initialCenter: LatLng = value ?? defaultCenter ?? { lat: -8.115994, lng: -79.029858 };
   const [address, setAddress] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
 
