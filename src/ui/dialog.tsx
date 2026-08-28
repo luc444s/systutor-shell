@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "./cn";
 
 type DialogProps = {
@@ -26,7 +27,7 @@ export function Dialog({
 }: DialogProps) {
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       className={cn("fixed inset-0 flex items-center justify-center bg-background/80 p-4", zIndexClassName)}
       onClick={onClose}
@@ -58,6 +59,7 @@ export function Dialog({
         <div className="overflow-y-auto p-5">{children}</div>
         {actions ? <div className="border-t border-border p-5">{actions}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
