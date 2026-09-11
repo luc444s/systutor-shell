@@ -9,6 +9,7 @@ type DialogProps = {
   children: ReactNode;
   actions?: ReactNode;
   onClose: () => void;
+  widthClassName?: string;
   maxWidthClassName?: string;
   maxHeightClassName?: string;
   zIndexClassName?: string;
@@ -21,6 +22,7 @@ export function Dialog({
   children,
   actions,
   onClose,
+  widthClassName = "w-full",
   maxWidthClassName = "max-w-2xl",
   maxHeightClassName = "max-h-[85vh]",
   zIndexClassName = "z-[1000]",
@@ -34,7 +36,8 @@ export function Dialog({
     >
       <div
         className={cn(
-          "flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl",
+          "flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl",
+          widthClassName,
           maxHeightClassName,
           maxWidthClassName
         )}
