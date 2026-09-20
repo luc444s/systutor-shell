@@ -26,6 +26,13 @@ import type { ReactNode } from "react";
 
 type LatLng = { lat: number; lng: number };
 
+type GeocodeResult = {
+  lat: number;
+  lng: number;
+  display_name: string;
+  address?: Record<string, string>;
+};
+
 type LocationPickerProps = {
   value: LatLng | null;
   onChange: (location: LatLng) => void;
@@ -41,6 +48,7 @@ type LocationPickerProps = {
 const DEFAULT_ZOOM = 13;
 
 const lightTile = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const nominatimBaseUrl = "https://nominatim.openstreetmap.org";
 
 const defaultIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -102,9 +110,7 @@ function SearchControl({
   searchPlaceholder?: string;
 }) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<
-    { lat: number; lng: number; display_name: string }[]
-  >([]);
+  const [results, setResults] = useState<GeocodeResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -136,12 +142,23 @@ function SearchControl({
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(
+        let response = await fetch(
           `${getApiBaseUrl()}/api/v1/geocode/search?q=${encodeURIComponent(value)}&limit=5`,
           { headers: { "Accept-Language": "es" } },
         );
+        if (!response.ok) {
+          response = await fetch(
+            `${nominatimBaseUrl}/search?format=jsonv2&addressdetails=1&q=${encodeURIComponent(value)}&limit=5`,
+            { headers: { "Accept-Language": "es" } },
+          );
+        }
         if (!response.ok) return;
-        const data = await response.json();
+        const data = (await response.json()).map((item: { lat: string | number; lon?: string | number; lng?: string | number; display_name: string; address?: Record<string, string> }) => ({
+          lat: Number(item.lat),
+          lng: Number(item.lng ?? item.lon),
+          display_name: item.display_name,
+          address: item.address,
+        }));
         setResults(data);
         setOpen(data.length > 0);
       } catch {
@@ -213,19 +230,20 @@ export function LocationPicker({
     }
     let cancelled = false;
     setResolving(true);
-    console.log("[GEOCODE-FETCH]", getApiBaseUrl(), value.lat, value.lng);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
-    fetch(
-      `${getApiBaseUrl()}/api/v1/geocode/reverse?lat=${value.lat}&lng=${value.lng}`,
-      { headers: { "Accept-Language": "es" }, signal: controller.signal },
-    )
+    fetch(`${getApiBaseUrl()}/api/v1/geocode/reverse?lat=${value.lat}&lng=${value.lng}`, {
+      headers: { "Accept-Language": "es" },
+      signal: controller.signal,
+    })
       .then((r) => {
-        console.log("[GEOCODE-STATUS]", r.status);
-        return r.ok ? r.json() : null;
+        if (r.ok) return r.json();
+        return fetch(
+          `${nominatimBaseUrl}/reverse?format=jsonv2&addressdetails=1&lat=${value.lat}&lon=${value.lng}`,
+          { headers: { "Accept-Language": "es" }, signal: controller.signal },
+        ).then((fallback) => (fallback.ok ? fallback.json() : null));
       })
       .then((data) => {
-        console.log("[GEOCODE-DATA]", data?.display_name);
         if (!cancelled) {
           setAddress(data?.display_name ?? null);
           setResolving(false);
